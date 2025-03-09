@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1
+
+      - name: Configure C++ project
+        run: |
+          mkdir build
+          cd build
+          cmake .. -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build C++ project
+        run: |
+          cd build
+          cmake --build . --config Release
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Python Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Python Tests
+        run: python -m unittest discover -s tests
